@@ -30,6 +30,10 @@ def _intersect_point_circle(
 def quantify_aim_straightness(
                 hit_objects: list[HitObject], circle_size: float, inputs: list[Input]
 ) -> float:
+        # Return max aim straightness if only one HitObject or Input
+        if len(hit_objects) < 2 or len(inputs) < 2:
+                return 1.0
+
         aim_straightness: list[float] = list(float)
 
         circle_radius: float = 54.4 - 4.48 * circle_size
@@ -44,9 +48,13 @@ def quantify_aim_straightness(
                 if inputs[i].time > hit_objects[-1].time:
                         break
 
-                # Advance to next HitObject
+                # Advance to next HitObject pair if time of inputs exceeds that of current one
                 while hit_objects[next_hit_object_index].time < inputs[i].time:
                         next_hit_object_index += 1
+                
+                # Don't quantify if not hitcircle or slider
+                if not hit_objects[next_hit_object_index].type & 0b00000011:
+                        continue
                 
                 # Don't quantify if cursor is within HitObject
                 if _intersect_point_circle(
